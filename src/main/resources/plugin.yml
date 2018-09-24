@@ -1,0 +1,18 @@
+name: AutoFarmer
+version: ${project.version}
+main: com.pustinek.autofarmer.AutoFarmer
+authors: [Pustinek]
+description: Automatic farming for minecraft
+commands:
+  Autofarmer:
+    description: 'for all commands use /autofarmer help'
+    usage: 'Autofarmer has not started correctly, check the log file (or console) and correct any errors.'
+    aliases: [af]
+    permissions:
+      dogedrops.*:
+        description: Give access to all commands of Autofarmer
+        children:
+          dogedrops.help: true
+          dogedrops.item: true
+          dogedrops.get: true
+          dogedrops.give: true

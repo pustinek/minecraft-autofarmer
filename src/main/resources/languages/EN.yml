@@ -1,0 +1,55 @@
+action: "[gold][bold]<%0%>[/bold]"
+
+button: "[bold]<%0%>[/bold]"
+
+command:
+  - "[bold]%0%[/bold]"
+  - "    hover: %lang:action|Use %1%|%"
+  - "    command: %1%"
+helpCommand:
+  - "[gold]%0% [gray]-[reset]"
+  - "    hover: %lang:action|Use %0%|%"
+  - "    command: %0%"
+
+#Command exec.
+cmd-notValid: "That command is not valid, use '/autofarmer help' for info."
+cmd-onlyByPlayer: "This command can only be run by a player."
+
+main-space: "        "
+#help
+help-header: "Help page, commands that you can execute."
+help-help: "%lang:helpCommand|/af help|% Shows this help page."
+help-toggle: "[green]/af toggle [grey]- toggle on/off AutoFarmer"
+help-replant: "[green]/af replant [grey]- View & toggle between [bold]auto-replant [reset][grey]modes"
+help-plant: "[green]/af plant [grey]- set [bold]auto-plant [reset][grey]modes"
+
+
+mode-replant: "[green]/af replant [white]<mode_name>"
+mode-status-off:
+- "[white]- [green]/af replant [grey]%0%  [white][[red]%1%[white]]"
+- "   hover: click to toggle [bold]%0%"
+- "   command: /af replant %0%"
+mode-status-on:
+- "[white]- [green]/af replant [grey]%0%  [white][[green]%1%[white]]"
+- "   hover: click to toggle [bold]%0%"
+- "   command: /af replant %0%"
+
+plant-mode-status-sel:
+- "[white]- [green]/af plant [grey]%0%  [white][[green]%1%[white]]"
+- "   hover: click to toggle [bold]%0%"
+- "   command: /af plant %0%"
+plant-mode-status:
+- "[white]- [green]/af plant [grey]%0%"
+- "   hover: click to toggle [bold]%0%"
+- "   command: /af plant %0%"
+
+plant-successful-change: "AutoPlant %0% is now [white][[green]Selected[white]]"
+
+
+
+replant-header:        "[grey]-----------------[green]AUTO-FARMER[grey]---------------------"
+replant-help:          "             [green]/af replant [white]<[grey]name[white]>           "
+replant-successful-on: "%0% is now [white][[green]ON[white]]"
+replant-successful-off: "%0% is now [white][[red]OFF[white]]"
+replant-noPermission: "boii u have no perms"
+replant-footer: "[grey]-------made by [green]pustinek[grey] for [gold]dogecraft[grey]---------"
