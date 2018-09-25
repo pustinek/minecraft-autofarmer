@@ -4,6 +4,7 @@ import com.pustinek.autofarmer.AutoFarmer;
 import com.pustinek.autofarmer.PlayerData;
 import com.pustinek.autofarmer.managers.CropManager;
 import com.pustinek.autofarmer.managers.PlayerManager;
+import javafx.util.Pair;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -18,6 +19,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class CropListener implements Listener{
     private AutoFarmer plugin;
@@ -25,7 +27,8 @@ public class CropListener implements Listener{
     private CropManager cropManager;
     private ArrayList<Material> replantableCrops;
     private ArrayList<String> replantableModes;
-    private HashMap<Location, Material> locs = new HashMap<Location, Material>();
+    private HashMap<Location, Pair<Player,Material>> locs = new HashMap<>();
+    private Pair<Player,Material> playerMaterialPair;
     public CropListener() {
         this.plugin = AutoFarmer.getInstance();
         this.playerManager = AutoFarmer.getPlayerManager();
@@ -58,7 +61,8 @@ public class CropListener implements Listener{
                             if(brokenBlock.getRelative(BlockFace.DOWN).getType() == Material.SOIL
                                     && AutoFarmer.isHoe(player.getItemInHand().getType())) {
                                 //AutoFarmer.debug("location added of cropSeed ->" + cropManager.getCropBySeed(brokenBlockMat));
-                                locs.put(brokenBlock.getLocation(), cropManager.getSeedByCrop(brokenBlockMat));
+                                Pair <Player,Material> pair= new Pair<>(player,cropManager.getSeedByCrop(brokenBlockMat));
+                                locs.put(brokenBlock.getLocation(), pair);
                                 player.getItemInHand().setDurability((short) (player.getItemInHand().getDurability() - 2));
                             }
 
@@ -66,14 +70,16 @@ public class CropListener implements Listener{
                         case "NETHER_WARTS":
                             if(brokenBlock.getRelative(BlockFace.DOWN).getType() == Material.SOUL_SAND
                                     && AutoFarmer.isHoe(player.getItemInHand().getType())) {
-                                locs.put(brokenBlock.getLocation(), cropManager.getSeedByCrop(brokenBlockMat));
+                                Pair <Player,Material> pair= new Pair<>(player,cropManager.getSeedByCrop(brokenBlockMat));
+                                locs.put(brokenBlock.getLocation(), pair);
                                 player.getItemInHand().setDurability((short) (player.getItemInHand().getDurability() - 2));
                             }
                             break;
                         case "COCOA":
                             for(CocoaPosibleLogLocations logLocations : CocoaPosibleLogLocations.values()) {
                                 if(brokenBlock.getRelative(logLocations.logLocation).getType() == Material.LOG){
-                                    locs.put(brokenBlock.getLocation(), cropManager.getSeedByCrop(brokenBlockMat));
+                                    Pair <Player,Material> pair = new Pair<>(player,cropManager.getSeedByCrop(brokenBlockMat));
+                                    locs.put(brokenBlock.getLocation(), pair);
                                     player.getItemInHand().setDurability((short) (player.getItemInHand().getDurability() - 2));
                                 }
                             }
@@ -84,7 +90,7 @@ public class CropListener implements Listener{
     public void onCropDrop(ItemSpawnEvent e) {
         Location l = null;
 
-        for (Map.Entry<Location, Material> entry : locs.entrySet()) {
+        for (Map.Entry<Location, Pair<Player, Material>> entry : locs.entrySet()) {
 
             Location spawn = e.getLocation();
             spawn.setYaw(0);
@@ -99,14 +105,21 @@ public class CropListener implements Listener{
 
             if(spawn.equals(map)) {
                 ItemStack i = e.getEntity().getItemStack();
-                if(i.getType() == entry.getValue() || i.getType() == Material.INK_SACK) {
+                AutoFarmer.debug("e.getEntityType = " + i.getType() +", amount = "+ i.getAmount());
+                Pair<Player,Material> playerSeedPair = entry.getValue();
+                if(i.getType() == playerSeedPair.getValue() || i.getType() == Material.INK_SACK) {
                     l = entry.getKey(); // To prevent CME
                     Block b = e.getLocation().getBlock();
-                    Material cropToPlant = cropManager.getCropBySeed(entry.getValue());
+                    AutoFarmer.debug("EntryValue = "+ playerSeedPair.getValue());
+                    Material cropToPlant = cropManager.getCropBySeed(playerSeedPair.getValue());
                     if(cropToPlant != null){
                         b.setType(cropToPlant);
                     }
                     e.setCancelled(true);
+                }
+                Player player = playerSeedPair.getKey();
+                if(player != null) {
+
                 }
             }
         }
