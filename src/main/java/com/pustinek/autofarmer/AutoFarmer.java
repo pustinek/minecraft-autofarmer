@@ -22,6 +22,7 @@ public final class AutoFarmer extends JavaPlugin {
     private static AutoFarmer instance = null;
     public static Logger logger;
     private static CommandManager commandManager = null;
+    private static String defaultPlantMode = "WHEAT";
     private static CropManager cropManager = null;
     private static PlayerManager playerManager = null;
 
@@ -106,5 +107,8 @@ public final class AutoFarmer extends JavaPlugin {
         if (m == Material.IRON_HOE) return true;
         if (m == Material.DIAMOND_HOE) return true;
         return false;
+    }
+    public static String getDefaultPlantMode() {
+        return defaultPlantMode;
     }
 }

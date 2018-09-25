@@ -47,10 +47,6 @@ public class PlayerData{
 
     public boolean isEnabled() { return this.enabled;}
 
-    public void toggleToInventory() { this.toInventory = !toInventory; }
-
-    public  boolean toInventory() {return this.toInventory; }
-
     public Boolean getReplantValue(String modeName) {
         return this.autoReplantValues.get(modeName);
     }
@@ -64,23 +60,9 @@ public class PlayerData{
     }
 
     public void setSelectedPlantMode(String newPlantMode) {
-        if(newPlantMode != null) {
-            AutoFarmer.debug("SelectedPlantMode " + this.selectedPlantMode);
-            String oldValue = this.selectedPlantMode.toUpperCase();
+        if(this.cropManager.getPlantableModeList().contains(newPlantMode)){
             this.selectedPlantMode = newPlantMode.toUpperCase();
-
-            File playerFile = new File(AutoFarmer.getInstance().getDataFolder()+"\\userData\\", uuid + ".yml");
-            this.playerConfig = YamlConfiguration.loadConfiguration(playerFile);
-            playerConfig.set("plant-mode", newPlantMode.toUpperCase());
-            try {
-                playerConfig.save(playerFile);
-            }catch (Exception e) {
-                e.printStackTrace();
-            }
-        }else {
-            AutoFarmer.debug("How can newPlantMode be null o.o");
         }
-
     }
 
 }

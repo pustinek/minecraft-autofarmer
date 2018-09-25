@@ -17,18 +17,20 @@ public final class PlayerManager {
     private AutoFarmer plugin;
 
     private HashMap<UUID,PlayerData> playerDataMap = new HashMap<>();
+    public final String playerFolderPath;
 
     public PlayerManager() {
+
         this.plugin = AutoFarmer.getInstance();
+        this.playerFolderPath = plugin.getDataFolder() + File.separator + "playerData";
     }
     public PlayerData getPlayerData(UUID uuid) {
         return this.playerDataMap.get(uuid);
     }
 
-
     public void loadPlayerData(UUID uuid) {
-        File playerFile = new File(AutoFarmer.getInstance().getDataFolder()+"\\userData\\", uuid + ".yml");
-        File playerFileDir = new File(AutoFarmer.getInstance().getDataFolder()+"\\userData\\");
+        File playerFile = new File(playerFolderPath + File.separator + uuid + ".yml");
+        File playerFileDir = new File(playerFolderPath);
         YamlConfiguration playerConfig;
         AutoFarmer.debug("loadPlayerData called with player-uuid: "+uuid);
 
@@ -39,8 +41,8 @@ public final class PlayerManager {
             try {
                 playerFile.createNewFile();
                 playerConfig = YamlConfiguration.loadConfiguration(playerFile);
-                playerConfig.set("enabled",false);
-                playerConfig.set("plant-mode", "NONE");
+                playerConfig.set("enabled",true);
+                playerConfig.set("plant-mode", AutoFarmer.getDefaultPlantMode());
                 playerConfig.set("inventory-save", false);
                 playerConfig.createSection("replant-modes");
 
@@ -76,7 +78,7 @@ public final class PlayerManager {
         }
     }
     public void savePlayerDataToFile(UUID uuid) {
-        File playerFile = new File(AutoFarmer.getInstance().getDataFolder()+"\\userData\\", uuid + ".yml");
+        File playerFile = new File(playerFolderPath + File.separator + uuid + ".yml");
         PlayerData pd = this.playerDataMap.get(uuid);
         YamlConfiguration pc = YamlConfiguration.loadConfiguration(playerFile);
         for (Map.Entry<String, Boolean> replantEntry : pd.getAutoReplantValues().entrySet()) {
@@ -84,9 +86,8 @@ public final class PlayerManager {
             Boolean value = replantEntry.getValue();
             pc.set("replant-modes."+ key,value);
         }
-        pc.set("enabled",true);
+        pc.set("enabled",pd.isEnabled());
         pc.set("plant-mode",pd.getSelectedPlantMode());
-        pc.set("inventory-save",pd.toInventory());
         try {
             pc.save(playerFile);
         }catch (Exception e) {

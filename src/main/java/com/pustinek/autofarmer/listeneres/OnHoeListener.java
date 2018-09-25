@@ -33,12 +33,21 @@ public class OnHoeListener implements Listener{
         Block b = e.getClickedBlock();
         Player p = e.getPlayer();
         PlayerData pd = playerManager.getPlayerData(p.getUniqueId());
+        String playerPlantMode;
+        if(pd.getSelectedPlantMode() == null)
+        {
+            return;
+        }
+        else{
+            playerPlantMode = pd.getSelectedPlantMode();
+        }
         if(!pd.isEnabled()){
             return;
         }
         if(b.getType() == Material.DIRT || b.getType() == Material.GRASS) {
             if (b.getRelative(BlockFace.UP).isEmpty()) {
-                String playerPlantMode = playerManager.getPlayerData(p.getUniqueId()).getSelectedPlantMode();
+
+
                 Material playerPlantModeCrop = cropManager.getCropSetByInternalName(playerPlantMode).getCropMaterial();
                 Material playerPlantModeSeed = cropManager.getCropSetByInternalName(playerPlantMode).getSeedMaterial();
                 if (p.hasPermission("autofarm.plant." + playerPlantMode) && playerPlantModeSeed != Material.NETHER_STALK) {
