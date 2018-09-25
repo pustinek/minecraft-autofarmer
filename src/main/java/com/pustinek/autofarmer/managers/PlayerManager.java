@@ -7,6 +7,7 @@ import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -15,7 +16,6 @@ public final class PlayerManager {
 
     private AutoFarmer plugin;
 
-    private YamlConfiguration playerConfig;
     private HashMap<UUID,PlayerData> playerDataMap = new HashMap<>();
 
     public PlayerManager() {
@@ -29,16 +29,19 @@ public final class PlayerManager {
     public void loadPlayerData(UUID uuid) {
         File playerFile = new File(AutoFarmer.getInstance().getDataFolder()+"\\userData\\", uuid + ".yml");
         File playerFileDir = new File(AutoFarmer.getInstance().getDataFolder()+"\\userData\\");
+        YamlConfiguration playerConfig;
         AutoFarmer.debug("loadPlayerData called with player-uuid: "+uuid);
+
         if(!playerFileDir.exists()) {
             playerFileDir.mkdirs();
         }
         if(!playerFile.exists()) {
             try {
                 playerFile.createNewFile();
-                this.playerConfig = YamlConfiguration.loadConfiguration(playerFile);
+                playerConfig = YamlConfiguration.loadConfiguration(playerFile);
                 playerConfig.set("enabled",false);
                 playerConfig.set("plant-mode", "NONE");
+                playerConfig.set("inventory-save", false);
                 playerConfig.createSection("replant-modes");
 
                 for (Map.Entry<String, CropSet> cropEntry : AutoFarmer.getCropManager().getCropSet().entrySet()) {
@@ -52,28 +55,45 @@ public final class PlayerManager {
             }
         } else {
             //File exists
-            this.playerConfig = YamlConfiguration.loadConfiguration(playerFile);
+            playerConfig = YamlConfiguration.loadConfiguration(playerFile);
 
-            HashMap<CropSet,Boolean> playerAutoReplantValues = new HashMap<>();
-            for (Map.Entry<String, CropSet> cropEntry : AutoFarmer.getCropManager().getCropSet().entrySet()) {
-                String key = cropEntry.getKey();
-                CropSet cropSetValue = cropEntry.getValue();
-                Boolean cropAutoReplantValue = playerConfig.getBoolean("replant-modes." + key);
-                AutoFarmer.debug("put crop to replantModes ->" + cropEntry.getKey());
-                playerAutoReplantValues.put(cropSetValue,cropAutoReplantValue);
+            HashMap<String,Boolean> playerAutoReplantValues = new HashMap<>();
+            ArrayList<String> replantableModesList = AutoFarmer.getCropManager().getReplantableModesList();
+
+            for(String replantableMode : replantableModesList) {
+                Boolean value = playerConfig.getBoolean("replant-modes." + replantableMode);
+                playerAutoReplantValues.put(replantableMode,value);
             }
             String selectedPlantMode = playerConfig.getString("plant-mode");
             Boolean playerAutoFarmerStatus = playerConfig.getBoolean("enabled");
-            PlayerData playerData = new PlayerData(uuid, playerAutoReplantValues,selectedPlantMode,playerAutoFarmerStatus);
-            AutoFarmer.debug("Successfully loaded "+playerAutoReplantValues.size()+" Crops to player with UUID - " + uuid);
+            Boolean toInventory = playerConfig.getBoolean("inventory-save");
+            PlayerData playerData = new PlayerData(uuid, playerAutoReplantValues,selectedPlantMode,playerAutoFarmerStatus,toInventory);
             if(!this.playerDataMap.containsKey(uuid)) {
                 this.playerDataMap.put(uuid,playerData);
             }else{
                 AutoFarmer.debug("Tried to load player-data of ("+uuid+")"+" that already exists !");
             }
-
         }
     }
+    public void savePlayerDataToFile(UUID uuid) {
+        File playerFile = new File(AutoFarmer.getInstance().getDataFolder()+"\\userData\\", uuid + ".yml");
+        PlayerData pd = this.playerDataMap.get(uuid);
+        YamlConfiguration pc = YamlConfiguration.loadConfiguration(playerFile);
+        for (Map.Entry<String, Boolean> replantEntry : pd.getAutoReplantValues().entrySet()) {
+            String key = replantEntry.getKey();
+            Boolean value = replantEntry.getValue();
+            pc.set("replant-modes."+ key,value);
+        }
+        pc.set("enabled",true);
+        pc.set("plant-mode",pd.getSelectedPlantMode());
+        pc.set("inventory-save",pd.toInventory());
+        try {
+            pc.save(playerFile);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void removePlayerData(UUID uuid) {
         this.playerDataMap.remove(uuid);
     }

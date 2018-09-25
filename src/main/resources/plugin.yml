@@ -9,10 +9,27 @@ commands:
     usage: 'Autofarmer has not started correctly, check the log file (or console) and correct any errors.'
     aliases: [af]
     permissions:
-      dogedrops.*:
+      autofarmer.*:
         description: Give access to all commands of Autofarmer
         children:
-          dogedrops.help: true
-          dogedrops.item: true
-          dogedrops.get: true
-          dogedrops.give: true
+          autofarmer.help: true
+          autofarmer.toggle: true
+          autofarmer.replant: true
+          autofarmer.plant: true
+          autofarmer.tabcomplete: true
+
+    autofarmer.tabcomplete:
+      description: Allows you to tabcomplete all commands (also where you dont have permission)
+      default: false
+    autofarmer.help:
+      description: Allows you to see the help pages
+      default: false
+    autofarmer.toggle:
+      description: Allows you to toggle the plugin effect
+      default: false
+    autofarmer.replant:
+      description: Allows you to auto-replant crops on destroy
+      default: false
+    autofarmer.plant:
+      description: Allows you to auto-plant crops on ground till
+      default: false

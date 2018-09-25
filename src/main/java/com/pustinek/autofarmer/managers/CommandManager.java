@@ -1,13 +1,16 @@
 package com.pustinek.autofarmer.managers;
 
 import com.pustinek.autofarmer.AutoFarmer;
+import com.pustinek.autofarmer.PlayerData;
 import com.pustinek.autofarmer.commands.AutoPlantCommand;
 import com.pustinek.autofarmer.commands.CommandAutoFarmer;
 import com.pustinek.autofarmer.commands.AutoReplantCommand;
+import com.pustinek.autofarmer.commands.ToggleCommand;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,14 +19,17 @@ import java.util.TreeSet;
 
 public final class CommandManager implements CommandExecutor, TabCompleter {
     private final ArrayList<CommandAutoFarmer> commands;
+    private final PlayerManager pm;
     public CommandManager() {
         commands = new ArrayList<>();
         //commands.add(new HelpCommand());
+        commands.add(new ToggleCommand());
         commands.add(new AutoReplantCommand());
         commands.add(new AutoPlantCommand());
 
         AutoFarmer.getInstance().getCommand("AutoFarmer").setExecutor(this);
         AutoFarmer.getInstance().getCommand("AutoFarmer").setTabCompleter(this);
+        this.pm = AutoFarmer.getPlayerManager();
     }
 
     public ArrayList<CommandAutoFarmer> getCommands() {
@@ -37,7 +43,6 @@ public final class CommandManager implements CommandExecutor, TabCompleter {
         }
         // Add all messages to a list
         ArrayList<String> messages = new ArrayList<>();
-        AutoFarmer.message(target, "toggle");
         for(CommandAutoFarmer command : commands) {
             String help = command.getHelp(target);
             if(help != null && help.length() != 0) {
@@ -45,9 +50,18 @@ public final class CommandManager implements CommandExecutor, TabCompleter {
             }
         }
         // Send the messages to the target
+        PlayerData pd = pm.getPlayerData(((Player) target).getUniqueId());
+        if(pd.isEnabled()){
+            AutoFarmer.messageNoPrefix(target,"main-header-on");
+        }else{
+            AutoFarmer.messageNoPrefix(target,"main-header-off");
+        }
+        AutoFarmer.messageNoPrefix(target,"main-space");
         for(String message : messages) {
             AutoFarmer.messageNoPrefix(target, message);
         }
+        AutoFarmer.messageNoPrefix(target,"main-space");
+        AutoFarmer.messageNoPrefix(target,"replant-footer");
     }
 
     @Override

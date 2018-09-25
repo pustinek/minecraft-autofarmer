@@ -14,9 +14,13 @@ import java.util.UUID;
 public class AutoPlantCommand extends CommandAutoFarmer{
     private PlayerManager pm;
     private CropManager cm;
+
+    private ArrayList<String> plantableModesList;
     public AutoPlantCommand() {
         this.pm = AutoFarmer.getPlayerManager();
         this.cm = AutoFarmer.getCropManager();
+
+        this.plantableModesList = cm.getPlantableModeList();
     }
     @Override
     public String getCommandStart() {
@@ -33,9 +37,11 @@ public class AutoPlantCommand extends CommandAutoFarmer{
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if(!sender.hasPermission("autofarmer.replant") || !sender.hasPermission("autofarmer.default")) {
-            AutoFarmer.message(sender, "replant-noPermission");
+        if(!sender.hasPermission("autofarmer.plant")){
+            AutoFarmer.message(sender, "plant-noPermission");
+            return;
         }
+
         UUID uuid = ((Player)sender).getUniqueId();
         PlayerData pd = pm.getPlayerData(uuid);
         String selectedPlantModeMode = pd.getSelectedPlantMode();
@@ -43,11 +49,11 @@ public class AutoPlantCommand extends CommandAutoFarmer{
             if(pd != null) {
                 AutoFarmer.messageNoPrefix(sender,"replant-header");
                 AutoFarmer.messageNoPrefix(sender,"main-space");
-                for(String enabledMode : cm.getEnabledAutoPlantModes()) {
-                    if(!enabledMode.equalsIgnoreCase(selectedPlantModeMode)) {
-                        AutoFarmer.messageNoPrefix(sender,"plant-mode-status",enabledMode, "");
+                for(String plantableMode : this.plantableModesList) {
+                    if(!plantableMode.equalsIgnoreCase(selectedPlantModeMode)) {
+                        AutoFarmer.messageNoPrefix(sender,"plant-mode-status",plantableMode, "");
                     }else {
-                        AutoFarmer.messageNoPrefix(sender,"plant-mode-status-sel",enabledMode,"✔");
+                        AutoFarmer.messageNoPrefix(sender,"plant-mode-status-sel",plantableMode,"✔");
                     }
                 }
                 AutoFarmer.messageNoPrefix(sender,"main-space");
@@ -55,8 +61,8 @@ public class AutoPlantCommand extends CommandAutoFarmer{
             }
         }if(args.length == 2) {
             String newPlantModeSel = args[1].toUpperCase();
-            for(String enabledMode : cm.getEnabledAutoPlantModes()) {
-                if(enabledMode.equalsIgnoreCase(newPlantModeSel)){
+            for(String plantableMode : plantableModesList) {
+                if(plantableMode.equalsIgnoreCase(newPlantModeSel)){
                     pd.setSelectedPlantMode(newPlantModeSel);
                     AutoFarmer.message(sender,"plant-successful-change", newPlantModeSel);
                     return;
@@ -79,7 +85,7 @@ public class AutoPlantCommand extends CommandAutoFarmer{
         if(toComplete == 2) {
             if(sender instanceof Player) {
                 Player player = (Player)sender;
-                return AutoFarmer.getCropManager().getEnabledAutoPlantModes();
+                return plantableModesList;
             }else{
                 return result;
             }

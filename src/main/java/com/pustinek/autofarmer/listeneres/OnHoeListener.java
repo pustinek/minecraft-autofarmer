@@ -1,6 +1,7 @@
 package com.pustinek.autofarmer.listeneres;
 
 import com.pustinek.autofarmer.AutoFarmer;
+import com.pustinek.autofarmer.PlayerData;
 import com.pustinek.autofarmer.managers.CropManager;
 import com.pustinek.autofarmer.managers.PlayerManager;
 import com.pustinek.autofarmer.utils.Utils;
@@ -25,13 +26,16 @@ public class OnHoeListener implements Listener{
         this.playerManager = AutoFarmer.getPlayerManager();
     }
 
-
     @EventHandler
     public void onTillGround(PlayerInteractEvent e) {
         if(!(e.getAction() == Action.RIGHT_CLICK_BLOCK)) {return;}
         if(e.getItem() == null || !(Utils.isHoe(e.getItem().getType()))) {return;}
         Block b = e.getClickedBlock();
         Player p = e.getPlayer();
+        PlayerData pd = playerManager.getPlayerData(p.getUniqueId());
+        if(!pd.isEnabled()){
+            return;
+        }
         if(b.getType() == Material.DIRT || b.getType() == Material.GRASS) {
             if (b.getRelative(BlockFace.UP).isEmpty()) {
                 String playerPlantMode = playerManager.getPlayerData(p.getUniqueId()).getSelectedPlantMode();

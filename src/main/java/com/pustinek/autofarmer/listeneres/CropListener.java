@@ -23,36 +23,42 @@ public class CropListener implements Listener{
     private AutoFarmer plugin;
     private PlayerManager playerManager;
     private CropManager cropManager;
-    private ArrayList<Material> enabledCrops;
+    private ArrayList<Material> replantableCrops;
+    private ArrayList<String> replantableModes;
     private HashMap<Location, Material> locs = new HashMap<Location, Material>();
     public CropListener() {
         this.plugin = AutoFarmer.getInstance();
         this.playerManager = AutoFarmer.getPlayerManager();
         this.cropManager = AutoFarmer.getCropManager();
-        this.enabledCrops = this.cropManager.getEnabledCrops();
+
+        this.replantableCrops = this.cropManager.getReplantableCrops();
+        this.replantableModes = this.cropManager.getReplantableModesList();
     }
     @EventHandler
     public void onCropBreak(BlockBreakEvent event) {
         Block brokenBlock = event.getBlock();
-        if(!enabledCrops.contains(brokenBlock.getType())){return;}
-
+        if(!replantableCrops.contains(brokenBlock.getType())){return;}
             Player player = event.getPlayer();
             PlayerData playerData = playerManager.getPlayerData(player.getUniqueId());
+            if(!playerData.isEnabled()){
+                return;
+            }
 
-            Material brokenBlockMaterial = brokenBlock.getType();
-            // !player.hasPermission("autofarmer.rp."+cropManager.getCropSetByMaterial(brokenBlockMaterial).getInternalName()
-            AutoFarmer.debug("getAutoReplantValue of broken block ("+brokenBlockMaterial.name()+")->"+playerData.getAutoReplantValue(brokenBlockMaterial));
-            if(!playerData.getAutoReplantValue(brokenBlockMaterial) ){return;}
-                AutoFarmer.debug("GetCropSetInternalname from cropmanager ("+brokenBlockMaterial.name()+")->"+AutoFarmer.getCropManager().getCropSetByMaterial(brokenBlockMaterial).getInternalName());
-                    switch (AutoFarmer.getCropManager().getCropSetByMaterial(brokenBlockMaterial).getInternalName()){
+            Material brokenBlockMat = brokenBlock.getType();
+            String brokenBlockInternalName = cropManager.cropToMode(brokenBlockMat);
+
+            // !player.hasPermission("autofarmer.rp."+cropManager.getCropSetByMaterial(brokenBlockMat).getInternalName()
+            //AutoFarmer.debug("Block of type " + brokenBlockMat.name() + " was broken, players autoReplant value for it is " + playerData.getReplantValue(brokenBlockInternalName.toUpperCase()));
+            if(!playerData.getReplantValue(brokenBlockInternalName)){return;}
+                    switch (brokenBlockInternalName){
                         case "WHEAT":
                         case "CARROT":
                         case "POTATO":
                         case "BEETROOT":
                             if(brokenBlock.getRelative(BlockFace.DOWN).getType() == Material.SOIL
                                     && AutoFarmer.isHoe(player.getItemInHand().getType())) {
-                                AutoFarmer.debug("location added of cropSeed ->" + cropManager.getCropBySeed(brokenBlockMaterial));
-                                locs.put(brokenBlock.getLocation(), cropManager.getSeedByCrop(brokenBlockMaterial));
+                                //AutoFarmer.debug("location added of cropSeed ->" + cropManager.getCropBySeed(brokenBlockMat));
+                                locs.put(brokenBlock.getLocation(), cropManager.getSeedByCrop(brokenBlockMat));
                                 player.getItemInHand().setDurability((short) (player.getItemInHand().getDurability() - 2));
                             }
 
@@ -60,14 +66,14 @@ public class CropListener implements Listener{
                         case "NETHER_WARTS":
                             if(brokenBlock.getRelative(BlockFace.DOWN).getType() == Material.SOUL_SAND
                                     && AutoFarmer.isHoe(player.getItemInHand().getType())) {
-                                locs.put(brokenBlock.getLocation(), cropManager.getSeedByCrop(brokenBlockMaterial));
+                                locs.put(brokenBlock.getLocation(), cropManager.getSeedByCrop(brokenBlockMat));
                                 player.getItemInHand().setDurability((short) (player.getItemInHand().getDurability() - 2));
                             }
                             break;
                         case "COCOA":
                             for(CocoaPosibleLogLocations logLocations : CocoaPosibleLogLocations.values()) {
                                 if(brokenBlock.getRelative(logLocations.logLocation).getType() == Material.LOG){
-                                    locs.put(brokenBlock.getLocation(), cropManager.getSeedByCrop(brokenBlockMaterial));
+                                    locs.put(brokenBlock.getLocation(), cropManager.getSeedByCrop(brokenBlockMat));
                                     player.getItemInHand().setDurability((short) (player.getItemInHand().getDurability() - 2));
                                 }
                             }

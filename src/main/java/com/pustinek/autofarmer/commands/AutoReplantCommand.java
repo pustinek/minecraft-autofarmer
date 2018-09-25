@@ -14,9 +14,15 @@ import java.util.UUID;
 
 public class AutoReplantCommand extends CommandAutoFarmer{
     private PlayerManager playerManager;
+    private CropManager cm;
+    private ArrayList<String> replantableModes;
     public AutoReplantCommand() {
 
         this.playerManager = AutoFarmer.getPlayerManager();
+        this.cm = AutoFarmer.getCropManager();
+
+        this.replantableModes = cm.getReplantableModesList();
+
     }
 
     @Override
@@ -34,8 +40,9 @@ public class AutoReplantCommand extends CommandAutoFarmer{
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if(!sender.hasPermission("autofarmer.replant") || !sender.hasPermission("autofarmer.default")) {
+        if(!sender.hasPermission("autofarmer.replant")) {
             AutoFarmer.message(sender, "replant-noPermission");
+            return;
         }
         UUID senderUUID = ((Player)sender).getUniqueId();
         PlayerData playerData = playerManager.getPlayerData(senderUUID);
@@ -43,32 +50,29 @@ public class AutoReplantCommand extends CommandAutoFarmer{
                 if(playerData != null) {
                     AutoFarmer.messageNoPrefix(sender,"replant-header");
                     AutoFarmer.messageNoPrefix(sender,"main-space");
-                    playerData.getAutoReplantValues().forEach((key, value) -> {
-                        if(value) {
-                            AutoFarmer.messageNoPrefix(sender,"mode-status-on",key.getInternalName(),"ON","OFF");
+
+                    for(String replantMode : this.replantableModes) {
+                        if(playerData.getReplantValue(replantMode)) {
+                            AutoFarmer.messageNoPrefix(sender,"replant-status-on",replantMode,"ON");
                         }else {
-                            AutoFarmer.messageNoPrefix(sender,"mode-status-off",key.getInternalName(),"OFF","ON");
+                            AutoFarmer.messageNoPrefix(sender,"replant-status-off",replantMode,"OFF");
                         }
-                    });
+                    }
+
                     AutoFarmer.messageNoPrefix(sender,"main-space");
                     AutoFarmer.messageNoPrefix(sender,"replant-footer");
                 }
         } if(args.length == 2) {
-            String selectedMode = args[1].toUpperCase();
-            CropSet cropSet = AutoFarmer.getCropManager().getCropSetByInternalName(selectedMode);
-            if (cropSet.getInternalName() != null) {
-                Boolean newModeValue = !playerData.getAutoReplantValues().get(cropSet);
-                playerData.setCropAutoReplant(cropSet, newModeValue);
-                if(newModeValue) {
-                    AutoFarmer.message(sender,"replant-successful-on", cropSet.getInternalName());
+            String selectedMode = args[1];
+            for(String replantMode : replantableModes) {
+                if(!replantMode.equalsIgnoreCase(selectedMode)) {continue;}
+                playerData.toggleReplantModeValue(replantMode);
+                if(playerData.getReplantValue(replantMode)) {
+                    AutoFarmer.message(sender,"replant-successful-on", replantMode);
                 }else {
-                    AutoFarmer.message(sender,"replant-successful-off", cropSet.getInternalName());
+                    AutoFarmer.message(sender,"replant-successful-off", replantMode);
                 }
-
-            }else {
-                AutoFarmer.debug("farming mode " + selectedMode + "Doesn't exist!");
-            }
-        }
+            } }
     }
     @Override
     public List<String> getTabCompleteList(int toComplete, String[] start, CommandSender sender) {
@@ -77,7 +81,7 @@ public class AutoReplantCommand extends CommandAutoFarmer{
         if(toComplete == 2) {
             if(sender instanceof Player) {
                 Player player = (Player)sender;
-                return AutoFarmer.getCropManager().getCropSetInternalNames();
+                return replantableModes;
             }else{
                 return result;
             }

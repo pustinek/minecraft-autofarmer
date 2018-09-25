@@ -5,6 +5,7 @@ import com.pustinek.autofarmer.CropSet;
 import com.pustinek.autofarmer.utils.Utils;
 import org.bukkit.Material;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,26 +14,25 @@ import java.util.Map;
 public final class CropManager{
 
     private HashMap<String,CropSet> cropSetMap = new HashMap<>();
+    private ArrayList<CropSet> cropSetArrayList = new ArrayList<>();
+
 
     private final AutoFarmer plugin;
 
-    private ArrayList<Material> enabledCrops = new ArrayList<>(Arrays.asList(
-            Material.CARROT,Material.POTATO, Material.MELON_STEM,
-            Material.MELON_SEEDS, Material.PUMPKIN_STEM,
-            Material.WHEAT, Material.CROPS, Material.COCOA,Material.BEETROOT
-    ));
-    private ArrayList<String> enabledAutoPlantModes = new ArrayList<>(Arrays.asList(CropsOld.WHEAT.name(),CropsOld.CARROT.name(),CropsOld.BEETROOT.name(),CropsOld.POTATO.name()));
+    private ArrayList<String> enabledReplantModes = new ArrayList<>();
     public CropManager(){
         this.plugin = AutoFarmer.getInstance();
         switch (Utils.getMajorVersion()) {
             case (12):
                 for(CropsOld crop : CropsOld.values()) {
-                    CropSet c = new CropSet(crop.name(),crop.crop,crop.seed);
-                    this.cropSetMap.put(crop.name(),c);
-                    //AutoFarmer.debug("creating crop ->" + crop.name() + ", " + crop.crop.name() + ", " + crop.seed.name());
+                    CropSet cropSet = new CropSet(crop.name(),crop.crop,crop.seed,crop.autoPlantable);
+                    this.enabledReplantModes.add(crop.name());
+                    this.cropSetMap.put(crop.name(),cropSet);
+                    this.cropSetArrayList.add(cropSet);
                 }
                 break;
             case(13):
+                //TODO: Implement 1.13 support
                 break;
         }
     }
@@ -40,25 +40,12 @@ public final class CropManager{
         return this.cropSetMap;
     }
 
-    public CropSet getCropSetByMaterial(Material cropMaterial) {
-        for(Map.Entry<String, CropSet> entry : cropSetMap.entrySet()) {
-            String entryInternalName = entry.getKey();
-            CropSet entryCropSet = entry.getValue();
-            if(entryCropSet.compareTo(cropMaterial) == 1) {
-                return entryCropSet;
-            }
-        }
-        return new CropSet("error",Material.AIR,Material.AIR);
-    }
-
-
     public Material getSeedByCrop(Material cropMat) {
         for(Map.Entry<String, CropSet> entry : cropSetMap.entrySet()) {
             CropSet entryCropSet = entry.getValue();
             if(entryCropSet.compareTo(cropMat) == 1) {
                 return entryCropSet.getSeedMaterial();
             }
-
         }
         return Material.AIR;
     }
@@ -75,40 +62,59 @@ public final class CropManager{
     public CropSet getCropSetByInternalName(String internalName) {
         return this.cropSetMap.get(internalName);
     }
-    public ArrayList<String> getCropSetInternalNames() {
-        ArrayList<String> keys = new ArrayList<>(this.getCropSet().keySet());
-        return keys;
-    }
-    //TODO: Implement logic to enable cropSetMap in config !
-    public boolean cropIsEnabled(Material cropMaterial) {
-        return true;
-    }
 
-    public ArrayList<Material> getEnabledCrops() {
-        return enabledCrops;
+    //***************************************NEW IMPLEMENTATIONS !!*********************************************************
+    public ArrayList<String> getPlantableModeList() {
+        ArrayList<String> plantableModes = new ArrayList<>();
+        for(CropSet cropSet : cropSetArrayList) {
+            if(cropSet.isAutoPlantable()) {
+                plantableModes.add(cropSet.getInternalName());
+            }
+        }
+        return plantableModes;
     }
-
-    public ArrayList<String> getEnabledAutoPlantModes() {
-        return enabledAutoPlantModes;
+    public ArrayList<String> getReplantableModesList() {
+        ArrayList<String> replantableModes = new ArrayList<>();
+        for(CropSet cropSet : cropSetArrayList) {
+                replantableModes.add(cropSet.getInternalName());
+        }
+        return replantableModes;
     }
-
+    //Transform crop Material to internal_name/mode
+    public String cropToMode(Material crop) {
+        for(CropSet cropSet : cropSetArrayList) {
+            if(cropSet.getCropMaterial() == crop) {
+                return  cropSet.getInternalName();
+            }
+        }
+        return "";
+    }
+    public ArrayList<Material> getReplantableCrops() {
+        ArrayList<Material> replantableCrops = new ArrayList<>();
+        for(CropSet cropSet : cropSetArrayList) {
+            replantableCrops.add(cropSet.getCropMaterial());
+        }
+        return replantableCrops;
+    }
     @Deprecated
     private enum CropsOld {
-        WHEAT(Material.CROPS, Material.SEEDS,"HOE"),
-        CARROT(Material.CARROT, Material.CARROT_ITEM,"HOE"),
-        POTATO(Material.POTATO, Material.POTATO_ITEM,"HOE"),
-        NETHER_WARTS(Material.NETHER_WARTS, Material.NETHER_WARTS,"HOE"),
-        BEETROOT(Material.BEETROOT, Material.BEETROOT_SEEDS,"HOE"),
-        COCOA(Material.COCOA, Material.COCOA,"AXE");
+        WHEAT(Material.CROPS, Material.SEEDS,"HOE",true),
+        CARROT(Material.CARROT, Material.CARROT_ITEM,"HOE",true),
+        POTATO(Material.POTATO, Material.POTATO_ITEM,"HOE",true),
+        NETHER_WARTS(Material.NETHER_WARTS, Material.NETHER_WARTS,"HOE",false),
+        BEETROOT(Material.BEETROOT_BLOCK, Material.BEETROOT_SEEDS,"HOE",true),
+        COCOA(Material.COCOA, Material.COCOA,"AXE",false);
 
         public Material crop;
         public Material seed;
         public String harvestTool;
+        public boolean autoPlantable;
 
-        CropsOld(Material crop, Material seed, String harvestTool) {
+        CropsOld(Material crop, Material seed, String harvestTool,Boolean autoPlantable) {
             this.crop = crop;
             this.seed = seed;
             this.harvestTool = harvestTool;
+            this.autoPlantable = autoPlantable;
         }
         public Material getCrops() {
             return this.crop;

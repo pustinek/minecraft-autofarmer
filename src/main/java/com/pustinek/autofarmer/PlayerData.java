@@ -1,6 +1,7 @@
 package com.pustinek.autofarmer;
 
 import com.pustinek.autofarmer.managers.CropManager;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -15,67 +16,53 @@ public class PlayerData{
     private final AutoFarmer plugin;
     private final CropManager cropManager;
 
-    private boolean playerAutofarmerStatus = true;
-
-    private HashMap<CropSet,Boolean> autoReplantValues = new HashMap<>();
-    private String selectedPlantMode = "NONE";
-    public PlayerData(UUID uuid, HashMap<CropSet,Boolean> autoReplantValues,String selectedPlantMode,Boolean playerAutofarmerStatus) {
+    private HashMap<String,Boolean> autoReplantValues;
+    private String selectedPlantMode;
+    private Boolean enabled;
+    private Boolean toInventory;
+    public PlayerData(UUID uuid, HashMap<String,Boolean> autoReplantValues,String selectedPlantMode,Boolean enabled,Boolean toInventory) {
         this.uuid = uuid;
         this.autoReplantValues = autoReplantValues;
-        this.playerAutofarmerStatus = playerAutofarmerStatus;
-
+        this.enabled = enabled;
+        this.toInventory = toInventory;
         if(selectedPlantMode == null) {
-            this.selectedPlantMode = "NONE";
+            this.selectedPlantMode = "";
         }else {
             this.selectedPlantMode = selectedPlantMode;
-        }
 
+        }
         this.plugin = AutoFarmer.getInstance();
         this.cropManager = AutoFarmer.getCropManager();
     }
 
 
 
-    public void setCropAutoReplant(CropSet cropSetToChange, boolean newValue) {
-        if(cropSetToChange != null) {
-            File playerFile = new File(AutoFarmer.getInstance().getDataFolder()+"\\userData\\", uuid + ".yml");
-            this.playerConfig = YamlConfiguration.loadConfiguration(playerFile);
-            playerConfig.set("replant-modes."+ cropSetToChange.getInternalName(), newValue);
-            try {
-                playerConfig.save(playerFile);
-            }catch (Exception e) {
-                e.printStackTrace();
-            }
-            try {
-                this.autoReplantValues.replace(cropSetToChange,!newValue,newValue);
-                AutoFarmer.debug("set " + cropSetToChange.getInternalName() + " to " + newValue);
-            }catch (Exception e) {
-                e.printStackTrace();
-            }
-            for (Map.Entry<CropSet, Boolean> cropEntry : autoReplantValues.entrySet()) {
-                AutoFarmer.debug("" + cropEntry.getKey().getInternalName() + "->"+cropEntry.getValue());
-            }
-        }else
-        {
-            AutoFarmer.debug("cropSetToChange is null !!");
-        }
+    public void toggleReplantModeValue(String internalName) {
+        Boolean oldValue = this.autoReplantValues.get(internalName);
+        this.autoReplantValues.replace(internalName,oldValue,!oldValue);
     }
-    public boolean getAutoReplantValue(Material mat) {
-        for (Map.Entry<CropSet, Boolean> cropEntry : autoReplantValues.entrySet()) {
-            AutoFarmer.debug("getAutoReplantValue("+mat.name()+")->"+ cropEntry.getKey().getCropMaterial().name());
-            if(cropEntry.getKey().getCropMaterial().name().equalsIgnoreCase(mat.name())) {
-                AutoFarmer.debug("getAutoReplantValue found -> " + mat.name());
-                return cropEntry.getValue();
-            }}
-        return false;
+    public void toggleEnable() {
+        this.enabled = !this.enabled;
     }
-    public HashMap<CropSet,Boolean> getAutoReplantValues() {
-        return this.autoReplantValues;
+
+    public boolean isEnabled() { return this.enabled;}
+
+    public void toggleToInventory() { this.toInventory = !toInventory; }
+
+    public  boolean toInventory() {return this.toInventory; }
+
+    public Boolean getReplantValue(String modeName) {
+        return this.autoReplantValues.get(modeName);
     }
-    public Boolean hasAutoFarmerEnabled() {return this.playerAutofarmerStatus; }
+
+    public HashMap<String, Boolean> getAutoReplantValues() {
+        return autoReplantValues;
+    }
+
     public String getSelectedPlantMode() {
         return this.selectedPlantMode;
     }
+
     public void setSelectedPlantMode(String newPlantMode) {
         if(newPlantMode != null) {
             AutoFarmer.debug("SelectedPlantMode " + this.selectedPlantMode);

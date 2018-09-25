@@ -9,8 +9,7 @@ public class HelpCommand extends CommandAutoFarmer{
 
     @Override
     public String getCommandStart() {
-        return "autofarmert/af" +
-                " help";
+        return "autofarmer help";
     }
 
     @Override

@@ -20,6 +20,8 @@ public class OnPlayerLeaveListener implements Listener{
     @EventHandler
     public void onPlayerLeave(PlayerQuitEvent event) {
         UUID playerUUID = event.getPlayer().getUniqueId();
+        AutoFarmer.debug("Player just left LOL");
+        this.playerManager.savePlayerDataToFile(playerUUID);
         this.playerManager.removePlayerData(playerUUID);
     }
 }
