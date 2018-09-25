@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: me.wiefferink:interactivemessenger:1.1-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/me/wiefferink/interactivemessenger/1.1-SNAPSHOT/interactivemessenger-1.1-20180520.235644-49.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/me/wiefferink/interactivemessenger/1.1-SNAPSHOT/interactivemessenger-1.1-20180520.235644-49-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/me/wiefferink/interactivemessenger/1.1-SNAPSHOT/interactivemessenger-1.1-20180520.235644-49-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
