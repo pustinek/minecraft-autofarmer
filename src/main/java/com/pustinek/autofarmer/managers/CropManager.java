@@ -3,6 +3,7 @@ package com.pustinek.autofarmer.managers;
 import com.pustinek.autofarmer.AutoFarmer;
 import com.pustinek.autofarmer.CropSet;
 import com.pustinek.autofarmer.utils.Utils;
+import com.sun.scenario.effect.Crop;
 import org.bukkit.Material;
 
 import java.lang.reflect.Array;
@@ -40,27 +41,25 @@ public final class CropManager{
         return this.cropSetMap;
     }
 
-    public Material getSeedByCrop(Material cropMat) {
-        for(Map.Entry<String, CropSet> entry : cropSetMap.entrySet()) {
-            CropSet entryCropSet = entry.getValue();
-            if(entryCropSet.compareTo(cropMat) == 1) {
-                return entryCropSet.getSeedMaterial();
-            }
-        }
-        return Material.AIR;
+    public ArrayList<CropSet> getCropSetArrayList() {
+        return cropSetArrayList;
     }
-    public Material getCropBySeed(Material seedMat) {
-        for (Map.Entry<String, CropSet> entry : cropSetMap.entrySet()) {
-            CropSet entryCropSet = entry.getValue();
-            if(entryCropSet.getSeedMaterial() == seedMat) {
-                return entryCropSet.getCropMaterial();
-            }
 
+    public CropSet getCropSet(String mode){
+        for(CropSet cropSet : cropSetArrayList) {
+            if(cropSet.getInternalName().equalsIgnoreCase(mode)){
+                return cropSet;
+            }
         }
-        return Material.AIR;
+        return null;
     }
-    public CropSet getCropSetByInternalName(String internalName) {
-        return this.cropSetMap.get(internalName);
+    public CropSet getCropSet(Material cropOrSeed){
+        for(CropSet cropSet : cropSetArrayList) {
+            if(cropSet.getCropMaterial() == cropOrSeed || cropSet.getSeedMaterial() == cropOrSeed){
+                return cropSet;
+            }
+        }
+        return null;
     }
 
     //***************************************NEW IMPLEMENTATIONS !!*********************************************************
@@ -80,15 +79,6 @@ public final class CropManager{
         }
         return replantableModes;
     }
-    //Transform crop Material to internal_name/mode
-    public String cropToMode(Material crop) {
-        for(CropSet cropSet : cropSetArrayList) {
-            if(cropSet.getCropMaterial() == crop) {
-                return  cropSet.getInternalName();
-            }
-        }
-        return "";
-    }
     public ArrayList<Material> getReplantableCrops() {
         ArrayList<Material> replantableCrops = new ArrayList<>();
         for(CropSet cropSet : cropSetArrayList) {
@@ -96,12 +86,13 @@ public final class CropManager{
         }
         return replantableCrops;
     }
+
     @Deprecated
     private enum CropsOld {
         WHEAT(Material.CROPS, Material.SEEDS,"HOE",true),
         CARROT(Material.CARROT, Material.CARROT_ITEM,"HOE",true),
         POTATO(Material.POTATO, Material.POTATO_ITEM,"HOE",true),
-        NETHER_WARTS(Material.NETHER_WARTS, Material.NETHER_WARTS,"HOE",false),
+        NETHER_WARTS(Material.NETHER_WARTS, Material.NETHER_STALK,"HOE",false),
         BEETROOT(Material.BEETROOT_BLOCK, Material.BEETROOT_SEEDS,"HOE",true),
         COCOA(Material.COCOA, Material.COCOA,"AXE",false);
 
@@ -115,9 +106,6 @@ public final class CropManager{
             this.seed = seed;
             this.harvestTool = harvestTool;
             this.autoPlantable = autoPlantable;
-        }
-        public Material getCrops() {
-            return this.crop;
         }
     }
 

@@ -7,10 +7,12 @@ import com.pustinek.autofarmer.listeneres.OnPlayerLeaveListener;
 import com.pustinek.autofarmer.managers.CommandManager;
 import com.pustinek.autofarmer.managers.CropManager;
 import com.pustinek.autofarmer.managers.PlayerManager;
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import me.wiefferink.interactivemessenger.processing.Message;
 import me.wiefferink.interactivemessenger.source.LanguageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -25,6 +27,7 @@ public final class AutoFarmer extends JavaPlugin {
     private static String defaultPlantMode = "WHEAT";
     private static CropManager cropManager = null;
     private static PlayerManager playerManager = null;
+    private static WorldGuardPlugin worldGuard = null;
 
     public static AutoFarmer getInstance() {return AutoFarmer.instance;}
     @Override
@@ -32,13 +35,14 @@ public final class AutoFarmer extends JavaPlugin {
         logger = getLogger();
         AutoFarmer.instance = this;
 
+
         File dir = this.getDataFolder();
         if (!dir.isDirectory()) {
             dir.mkdir();
         }
         getConfig().options().copyDefaults(true);
         saveDefaultConfig();
-
+        worldGuard = getWorldGuard();
         this.loadManagers();
 
         LanguageManager languageManager = new LanguageManager(
@@ -108,7 +112,30 @@ public final class AutoFarmer extends JavaPlugin {
         if (m == Material.DIAMOND_HOE) return true;
         return false;
     }
+    public static boolean isAxe(Material m) {
+        if (m == Material.WOOD_AXE) return true;
+        if (m == Material.STONE_AXE) return true;
+        if (m == Material.GOLD_AXE) return true;
+        if (m == Material.IRON_AXE) return true;
+        if (m == Material.DIAMOND_AXE) return true;
+        return false;
+    }
     public static String getDefaultPlantMode() {
         return defaultPlantMode;
+    }
+    private WorldGuardPlugin getWorldGuard() {
+        Plugin plugin = getServer().getPluginManager().getPlugin("WorldGuard");
+
+        // WorldGuard may not be loaded
+        if (plugin == null || !(plugin instanceof WorldGuardPlugin)) {
+            return null; // Maybe you want throw an exception instead
+        }
+        return (WorldGuardPlugin) plugin;
+    }
+    public static WorldGuardPlugin getWorldGuardPlugin() {
+        return worldGuard;
+    }
+    public static boolean hasWorldGuard() {
+        return worldGuard != null && worldGuard.isEnabled();
     }
 }

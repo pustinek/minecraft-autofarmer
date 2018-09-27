@@ -1,6 +1,7 @@
 package com.pustinek.autofarmer.listeneres;
 
 import com.pustinek.autofarmer.AutoFarmer;
+import com.pustinek.autofarmer.CropSet;
 import com.pustinek.autofarmer.PlayerData;
 import com.pustinek.autofarmer.managers.CropManager;
 import com.pustinek.autofarmer.managers.PlayerManager;
@@ -28,36 +29,34 @@ public class OnHoeListener implements Listener{
 
     @EventHandler
     public void onTillGround(PlayerInteractEvent e) {
-        if(!(e.getAction() == Action.RIGHT_CLICK_BLOCK)) {return;}
-        if(e.getItem() == null || !(Utils.isHoe(e.getItem().getType()))) {return;}
-        Block b = e.getClickedBlock();
-        Player p = e.getPlayer();
-        PlayerData pd = playerManager.getPlayerData(p.getUniqueId());
-        String playerPlantMode;
-        if(pd.getSelectedPlantMode() == null)
-        {
-            return;
+        if(e.getAction() != Action.RIGHT_CLICK_BLOCK || e.getItem() == null || !(Utils.isHoe(e.getItem().getType()))){return;}
+
+        Block clickedBlock = e.getClickedBlock();
+        Player player = e.getPlayer();
+        PlayerData playerData = playerManager.getPlayerData(player.getUniqueId());
+        if (!player.hasPermission("autofarmer.plant")){return;}
+        if(!playerData.isEnabled()){return;}
+        if(AutoFarmer.hasWorldGuard()){
+            if(!AutoFarmer.getWorldGuardPlugin().canBuild(player,clickedBlock.getLocation())) {
+                return;
+            }
         }
-        else{
-            playerPlantMode = pd.getSelectedPlantMode();
-        }
-        if(!pd.isEnabled()){
-            return;
-        }
-        if(b.getType() == Material.DIRT || b.getType() == Material.GRASS) {
-            if (b.getRelative(BlockFace.UP).isEmpty()) {
 
 
-                Material playerPlantModeCrop = cropManager.getCropSetByInternalName(playerPlantMode).getCropMaterial();
-                Material playerPlantModeSeed = cropManager.getCropSetByInternalName(playerPlantMode).getSeedMaterial();
-                if (p.hasPermission("autofarm.plant." + playerPlantMode) && playerPlantModeSeed != Material.NETHER_STALK) {
-                    if (p.getInventory().contains(playerPlantModeSeed)) {
+        String playerPlantMode = playerData.getSelectedPlantMode();
+
+        if(clickedBlock.getType() == Material.DIRT || clickedBlock.getType() == Material.GRASS) {
+            if (clickedBlock.getRelative(BlockFace.UP).isEmpty()) {
+                CropSet cropSet = cropManager.getCropSet(playerPlantMode);
+                if(cropSet == null){return;}
+                if (cropSet.getSeedMaterial() != Material.NETHER_WARTS) {
+                    if (player.getInventory().contains(cropSet.getSeedMaterial())) {
                         ItemStack it = null;
                         int in = 0;
-                        ItemStack[] contents = p.getInventory().getContents();
+                        ItemStack[] contents = player.getInventory().getContents();
                         for (int i = 0; i < contents.length; i++) {
                             if (contents[i] != null) {
-                                if (contents[i].getType() == playerPlantModeSeed) {
+                                if (contents[i].getType() == cropSet.getSeedMaterial()) {
                                     it = contents[i].clone(); // Getting a copy of seed stack
                                     in = i; // Getting index of said stack in inventory
                                 }
@@ -66,14 +65,14 @@ public class OnHoeListener implements Listener{
                         if (it != null) {
 
                             if (it.getAmount() != 1)
-                                p.getInventory().setItem(in, new ItemStack(it.getType(), (it.getAmount() - 1)));
+                                player.getInventory().setItem(in, new ItemStack(it.getType(), (it.getAmount() - 1)));
                                 // Removing the seeds from the inventory
-                            else p.getInventory().setItem(in, null);
+                            else player.getInventory().setItem(in, null);
                             // Removing the seeds from the inventory
-                            p.updateInventory();
-                            Block up = b.getRelative(BlockFace.UP);
-                            up.setType(playerPlantModeCrop);
-                            b.setType(Material.SOIL);
+                            player.updateInventory();
+                            Block up = clickedBlock.getRelative(BlockFace.UP);
+                            up.setType(cropSet.getCropMaterial());
+                            clickedBlock.setType(Material.SOIL);
                             // Changing blocks.
 
 

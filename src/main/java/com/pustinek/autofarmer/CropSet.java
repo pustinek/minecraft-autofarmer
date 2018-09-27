@@ -4,12 +4,11 @@ import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
-public class CropSet implements Comparable<Material>{
+public class CropSet{
     private String internalName;
     private Material seed;
     private Material crop;
     private Boolean autoPlantable;
-    private Boolean autoReplantable = true;
 
     public CropSet(String internalName, Material crop, Material seed, Boolean autoPlantable) {
         this.internalName = internalName;
@@ -27,10 +26,4 @@ public class CropSet implements Comparable<Material>{
         return this.internalName;
     }
     public Boolean isAutoPlantable() {return this.autoPlantable; }
-    @Override
-    public int compareTo(Material otherCrop) {
-        if(otherCrop == this.crop){
-            return 1;
-        }else{return 0;}
-    }
 }

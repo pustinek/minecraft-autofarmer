@@ -19,6 +19,7 @@ public final class PlayerManager {
     private HashMap<UUID,PlayerData> playerDataMap = new HashMap<>();
     public final String playerFolderPath;
 
+    //TODO: save data on server quit
     public PlayerManager() {
 
         this.plugin = AutoFarmer.getInstance();
@@ -28,7 +29,9 @@ public final class PlayerManager {
         return this.playerDataMap.get(uuid);
     }
 
+
     public void loadPlayerData(UUID uuid) {
+        if(playerDataMap.containsKey(uuid)) {return;}
         File playerFile = new File(playerFolderPath + File.separator + uuid + ".yml");
         File playerFileDir = new File(playerFolderPath);
         YamlConfiguration playerConfig;

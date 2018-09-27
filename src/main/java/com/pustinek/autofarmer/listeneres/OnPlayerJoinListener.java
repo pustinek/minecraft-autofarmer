@@ -21,7 +21,6 @@ public class OnPlayerJoinListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
-        AutoFarmer.debug("[OnPlayerJoinListener] player with uuid "+uuid+" just joined");
         this.playerManager.loadPlayerData(uuid);
     }
 

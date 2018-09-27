@@ -3,6 +3,7 @@ version: ${project.version}
 main: com.pustinek.autofarmer.AutoFarmer
 authors: [Pustinek]
 description: Automatic farming for minecraft
+softdepend: [WorldGuard]
 commands:
   Autofarmer:
     description: 'for all commands use /autofarmer help'
